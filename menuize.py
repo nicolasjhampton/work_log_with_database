@@ -28,8 +28,10 @@ def list_print(*args, **kwargs):
     print("")
     for row in list_to_print:
         print(item.format(**row))
-    print("----------------------------------------------")
+    print("___________________________________________________")
     print("")
+    del kwargs['title']
+    del kwargs['item_template']
     return kwargs
 
 def multiline_input(*args, **kwargs):
@@ -77,6 +79,54 @@ def confirmed(*args, **kwargs):
     kwargs['confirmation'] = confirmation
     return kwargs
 
+def get_opt_name(option):
+    """returns the truncated version of the option function
+    
+    >>> def add_entry():
+    ...     pass
+    ... 
+    >>> get_opt_name(add_entry)
+    'add'
+    """
+    return re.search(r'(?P<option>[\w]+)\_.*', option.__name__).group('option')
+
+def choice_menu(*args, **kwargs):
+    option_template = "{}) {}\n"
+    title = kwargs['title']
+    options = kwargs['options']
+    name = kwargs['name']
+    prompt = kwargs['prompt']
+    option_names = [(l, get_opt_name(o)) for l, o in options.items()]
+    option_list = map(
+        lambda x: option_template.format(x[0], x[1]), 
+        option_names
+    )
+    if 'alert' in kwargs:
+        print(kwargs['alert'])
+        print("")
+        del kwargs['alert']
+    print(title)
+    print("")
+    print("".join(option_list))
+    del kwargs['title']
+    kwargs = line_input(*args, **kwargs)
+    option = kwargs['input'][name][0]
+    if option == "q":
+        sys.exit("GOODBYE")
+    if option not in options.keys():
+        kwargs['title'] = title
+        kwargs['name'] = name
+        kwargs['prompt'] = prompt
+        kwargs['alert'] = "::: BAD INPUT  Please try again :::"
+        clear()
+        return choice_menu(**kwargs)
+    choice_funcs = options[option]()
+    func_list = kwargs['og_func_list'][:]
+    wild_idx = func_list.index("*")
+    func_list[wild_idx:wild_idx + 1] = choice_funcs
+    kwargs['func_list'][:] = func_list
+    return kwargs
+
 def pause(*args, **kwargs):
     input("...   ")
     return kwargs
@@ -92,17 +142,21 @@ def normalize_func_list(func_list, this):
         pass
     return func_list
 
-def option(func_list=None):
+def option(**top_kwargs):
     """takes func_list and args"""
     def middle(func):
         @wraps(func)
         def inner(*args, **kwargs):
-            kwargs['func_list'] = normalize_func_list(func_list, func)
+
+            # if 'og_func_list' in kwargs:
+            #     top_kwargs['func_list'] = kwargs['og_func_list'][:]
+            kwargs['func_list'] = normalize_func_list(top_kwargs['func_list'][:], func)
+            kwargs['og_func_list'] = kwargs['func_list'][:]
             return exec_funcs(**kwargs)
         return inner
     return middle
 
-class Init:
+class Menu:
 
     def __init__(self, title="", exit_text="", option_pattern=r'(?P<option>[\w]+)\_.*', prompt_string="", **kwargs):
         self.title = title
@@ -139,17 +193,6 @@ class Init:
         """
         return self.prompt_string.format(option_list=", ".join([l for l, _ in self.options.items()]))
 
-    def get_opt_name(self, option):
-        """returns the truncated version of the option function
-        
-        >>> def add_entry():
-        ...     pass
-        ... 
-        >>> get_opt_name(add_entry)
-        'add'
-        """
-        return re.search(self.option_pattern, option.__name__).group('option')
-
     def option_titles(self):
         """returns a list of option names
         
@@ -167,7 +210,7 @@ class Init:
         >>> option_titles(options)
         [('a', 'add'), ('v', 'view'), ('d', 'delete')]
         """
-        return [(l, self.get_opt_name(o)) for l, o in self.options.items()]
+        return [(l, get_opt_name(o)) for l, o in self.options.items()]
 
     def input_to_option(self, raw_option):
         """takes numerical string input and returns corresponding index and func
@@ -205,7 +248,7 @@ class Init:
         """
         return "{}\n".format(alert) if alert else ""
 
-    def menu(self, callback):
+    def loop(self, callback):
         """runs the menu loop"""
         alert = None
         while True:
