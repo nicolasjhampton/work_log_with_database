@@ -6,7 +6,7 @@ import datetime
 from collections import OrderedDict
 from functools import wraps, partial
 
-from menuize import (Menu, option, list_print, line_input, multiline_input, 
+from menuize import (Menu, option, end, list_print, line_input, multiline_input, 
                     numerical_input, confirmed, clear_screen, choice_menu, pause)
 
 from models import (initialize, ALL_TASKS, ALL_NAMES, ALL_DATES, CREATE_TASK, 
@@ -85,7 +85,7 @@ search_choice = partial(choice_menu, title=messages["search_menu"],
                         prompt=messages["prompt_search_choice"], 
                         options=search_options, name="search")
 
-@option(func_list=[clear_screen, prompt_name, prompt_notes, prompt_duration, confirm_add, "this"])
+@option(func_list=[clear_screen, prompt_name, prompt_notes, prompt_duration, confirm_add, "this", end])
 def add_task(*args, **kwargs):
     """add a task"""
     if kwargs['input']:
@@ -97,7 +97,7 @@ def grab_date_helper(obj):
     date_range = obj['list'][date_choice - 1]
     return date_range['timestamp']
 
-@option(func_list=[clear_screen, search_choice, "*", "this", clear_screen, task_print, pause])
+@option(func_list=[clear_screen, search_choice, "*", "this", clear_screen, task_print, end])
 def search_tasks(*args, **kwargs):
     """search for tasks"""
     inputs = kwargs['input']

@@ -3,6 +3,15 @@ import sys
 import os
 from functools import wraps, reduce
 
+class EndOption(Exception):
+    """Ends an option chain"""
+    def __init__(self, message):
+        self.message = message
+
+
+def end(*args, **kwargs):
+    raise EndOption("...   ")
+
 def clear():
     """clears the screen"""
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -10,9 +19,14 @@ def clear():
 def executor(*args, **kwargs):
     def inner(acc, cur):
         start_check = acc.__class__.__name__
-        if start_check == 'function' or start_check == 'partial':
-            acc = acc(*args, **kwargs)
-        return cur(**acc)
+        try:
+            if start_check == 'function' or start_check == 'partial':
+                acc = acc(*args, **kwargs)
+            func = cur(**acc)
+            return func
+        except EndOption as err:
+            input(err)
+            raise 
     return inner
 
 def exec_funcs(*args, **kwargs):
@@ -147,9 +161,6 @@ def option(**top_kwargs):
     def middle(func):
         @wraps(func)
         def inner(*args, **kwargs):
-
-            # if 'og_func_list' in kwargs:
-            #     top_kwargs['func_list'] = kwargs['og_func_list'][:]
             kwargs['func_list'] = normalize_func_list(top_kwargs['func_list'][:], func)
             kwargs['og_func_list'] = kwargs['func_list'][:]
             return exec_funcs(**kwargs)
@@ -266,4 +277,7 @@ class Menu:
             except:
                 alert = "::: Bad input: please follow guidelines below :::"
                 continue
-            callback(option)
+            try:
+                callback(option)
+            except EndOption:
+                pass
