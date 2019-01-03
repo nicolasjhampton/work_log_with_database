@@ -63,7 +63,7 @@ def TASKS_CONTAINING(phrase):
 
 
 class DatabaseTests(unittest.TestCase):
-    def setUp():
+    def setUp(self):
         pass
     
 
