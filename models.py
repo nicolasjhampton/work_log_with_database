@@ -1,3 +1,4 @@
+import unittest
 import datetime
 from functools import wraps
 
@@ -60,3 +61,12 @@ def TASKS_WITH_DATE(date):
 def TASKS_CONTAINING(phrase):
     return Task.select().where(Task.name.contains(phrase) | Task.notes.contains(phrase))
 
+
+class DatabaseTests(unittest.TestCase):
+    def setUp():
+        pass
+    
+
+
+if __name__ == "__main__":
+    unittest.main()
