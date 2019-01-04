@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 
-import re
-import sys
-import datetime
-from collections import OrderedDict
-from functools import wraps, partial
+from functools import partial
 
 from menuize import (Menu, option, end, list_print, line_input, multiline_input, 
                     numerical_input, confirmed, clear_screen, choice_menu, pause)
@@ -73,13 +69,13 @@ def date_search():
     prompt_date = partial(numerical_input, prompt=messages["search_date"], name="date")
     return [clear_screen, get_dates, dates_print, prompt_date]
 
-search_options = OrderedDict([
+search_options = [
     ('a', all_tasks),
     ('n', name_search),
     ('d', date_search),
     ('p', phrase_search),
     ('t', time_search)
-])
+]
 
 search_choice = partial(choice_menu, title=messages["search_menu"], 
                         prompt=messages["prompt_search_choice"], 
@@ -108,6 +104,7 @@ def search_tasks(*args, **kwargs):
             kwargs['alert'] = "::: NO MATCHES try again :::"
             return search_tasks(**kwargs)
         elif len(matches) == 1:
+            # This needs to be fixed
             kwargs['list'] = TASK_WITH_ID(matches[0]['id'])
     if choice == 't':
         kwargs['list'] = TASKS_WITH_DURATION(inputs['time'])
@@ -122,10 +119,10 @@ def search_tasks(*args, **kwargs):
 
 if __name__ == '__main__':    
     db = initialize()
-    options = OrderedDict([
+    options = [
         ('a', add_task),
         ('s', search_tasks),
-    ])
+    ]
     
     work_log = Menu(
         title="Welcome to the WorkLog!\n\n",

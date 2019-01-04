@@ -1,13 +1,13 @@
 import re
 import sys
 import os
+from collections import OrderedDict
 from functools import wraps, reduce
 
 class EndOption(Exception):
     """Ends an option chain"""
     def __init__(self, message):
         self.message = message
-
 
 def end(*args, **kwargs):
     raise EndOption("...   ")
@@ -107,7 +107,7 @@ def get_opt_name(option):
 def choice_menu(*args, **kwargs):
     option_template = "{}) {}\n"
     title = kwargs['title']
-    options = kwargs['options']
+    options = OrderedDict(kwargs['options'])
     name = kwargs['name']
     prompt = kwargs['prompt']
     option_names = [(l, get_opt_name(o)) for l, o in options.items()]
@@ -174,7 +174,7 @@ class Menu:
         self.exit_text = exit_text
         self.prompt_string = prompt_string
         self.option_pattern = option_pattern
-        self.options = kwargs['options']
+        self.options = OrderedDict(kwargs['options'])
 
     def print_menu(self):
         """returns the menu options string
