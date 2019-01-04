@@ -169,12 +169,12 @@ def option(**top_kwargs):
 
 class Menu:
 
-    def __init__(self, title="", exit_text="", option_pattern=r'(?P<option>[\w]+)\_.*', prompt_string="", **kwargs):
+    def __init__(self, options, title="", exit_text="", option_pattern=r'(?P<option>[\w]+)\_.*', prompt_string=""):
         self.title = title
         self.exit_text = exit_text
         self.prompt_string = prompt_string
         self.option_pattern = option_pattern
-        self.options = OrderedDict(kwargs['options'])
+        self.options = OrderedDict(options)
 
     def print_menu(self):
         """returns the menu options string

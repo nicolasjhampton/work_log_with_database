@@ -105,7 +105,7 @@ def search_tasks(*args, **kwargs):
             return search_tasks(**kwargs)
         elif len(matches) == 1:
             # This needs to be fixed
-            kwargs['list'] = TASK_WITH_ID(matches[0]['id'])
+            # kwargs['list'] = TASK_WITH_ID(matches[0]['id'])
     if choice == 't':
         kwargs['list'] = TASKS_WITH_DURATION(inputs['time'])
     elif choice == 'd':
