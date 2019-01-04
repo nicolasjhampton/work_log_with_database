@@ -177,69 +177,22 @@ class Menu:
         self.options = OrderedDict(options)
 
     def print_menu(self):
-        """returns the menu options string
-        
-        >>> print(print_menu([('a', 'add'), ('v', 'view'), ('d', 'delete')]))
-        Welcome to your diary!
-        <BLANKLINE>
-        a) add
-        v) view
-        d) delete
-        <BLANKLINE>
-        """
+        """returns the menu options string"""
         TITLE = self.title
         OPT_TEMP = "{}) {}\n"
         option_list = [OPT_TEMP.format(letter, option) for letter, option in self.option_titles()]
-        return TITLE + "".join(option_list)
+        return TITLE + "\n\n" + "".join(option_list)
 
     def prompt_text(self):
-        """returns the prompt string with options range
-        
-        >>> from collections import OrderedDict
-        >>> options = OrderedDict([('a', 'add_entry'), ('v', 'view_entries'), ('d', 'delete_entry')])
-        >>> print(prompt_text(options))
-        What would you like to do?
-        (Enter either a, v, d, or q to quit)
-        <BLANKLINE>
-        """
+        """returns the prompt string with options range"""
         return self.prompt_string.format(option_list=", ".join([l for l, _ in self.options.items()]))
 
     def option_titles(self):
-        """returns a list of option names
-        
-        >>> from collections import OrderedDict
-        >>> def add_entry():
-        ...     pass
-        ... 
-        >>> def delete_entry():
-        ...     pass
-        ... 
-        >>> def view_entries():
-        ...     pass
-        ... 
-        >>> options = OrderedDict([('a', add_entry), ('v', view_entries), ('d', delete_entry)])
-        >>> option_titles(options)
-        [('a', 'add'), ('v', 'view'), ('d', 'delete')]
-        """
+        """returns a list of option names"""
         return [(l, get_opt_name(o)) for l, o in self.options.items()]
 
     def input_to_option(self, raw_option):
-        """takes numerical string input and returns corresponding index and func
-        
-        >>> from collections import OrderedDict
-        >>> def add_entry():
-        ...      pass
-        ... 
-        >>> def delete_entry():
-        ...      pass
-        ... 
-        >>> def view_entries():
-        ...      pass
-        ...
-        >>> options = OrderedDict([('a', add_entry), ('v', view_entries), ('d', delete_entry)])
-        >>> input_to_option(" v ", options).__name__
-        'view_entries'
-        """
+        """takes string input and returns corresponding index and func"""
         option = raw_option.strip().lower()[0]
         if option == "q":
             sys.exit(self.exit_text)
@@ -248,16 +201,8 @@ class Menu:
         return self.options[option]
 
     def alert_display(self, alert):
-        """returns alert message with newline, but only if alert exists
-        
-        >>> alert_display("")
-        ''
-        >>> alert_display(None)
-        ''
-        >>> alert_display("Hello good lookin!")[:-2]
-        'Hello good lookin'
-        """
-        return "{}\n".format(alert) if alert else ""
+        """returns alert message with newline, but only if alert exists"""
+        return "::: {} :::\n".format(alert) if alert else ""
 
     def loop(self, callback):
         """runs the menu loop"""
@@ -275,7 +220,7 @@ class Menu:
                 clear()
                 raise err
             except:
-                alert = "::: Bad input: please follow guidelines below :::"
+                alert = "Bad input: please follow guidelines below"
                 continue
             try:
                 callback(option)
