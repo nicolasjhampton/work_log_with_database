@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import unittest
 import datetime
 from functools import wraps
@@ -59,6 +61,10 @@ def TASKS_WITH_DURATION(time):
 @to_dictionary
 def TASK_WITH_ID(ID):
     return Task.select().where(Task.id == ID)
+
+@to_dictionary
+def TASKS_WITH_NAME(name):
+    return Task.select().where(Task.name == name)
 
 @to_dictionary
 def TASKS_WITH_DATE(date):
@@ -126,6 +132,12 @@ class QueryTests(unittest.TestCase):
         self.assertEqual(len(names), 4)
         for idx, name in enumerate(names):
             self.assertIn(name['name'], self.TEST_NAMES)
+    
+    def test_ALL_NAMES_MATCHING(self):
+        names = NAMES_MATCHING("")
+        self.assertEqual(len(names), 4)
+        for idx, name in enumerate(names):
+            self.assertIn(name['name'], self.TEST_NAMES)
 
     def test_NAMES_MATCHING(self):
         names = NAMES_MATCHING("nic")
@@ -151,6 +163,12 @@ class QueryTests(unittest.TestCase):
         self.assertEqual(len(tasks), 1)
         self.assertEqual(tasks[0]['name'], "dave")
         self.assertEqual(tasks[0]['notes'], self.TEST_TASKS[5]['notes'])
+
+    def test_TASKS_WITH_NAME(self):
+        tasks = TASKS_WITH_NAME("tonia")
+        self.assertEqual(len(tasks), 2)
+        for task in tasks:
+            self.assertEqual(task['name'], "tonia")
 
     def test_TASKS_WITH_DATE_returns_none_for_yesterday(self):
         tasks = TASKS_WITH_DATE(datetime.date.today() - datetime.timedelta(days=1))

@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
 from functools import partial
+from copy import copy
 
 from menuize import (Menu, option, end, list_print, line_input, multiline_input, 
-                    numerical_input, confirmed, clear_screen, choice_menu, pause)
+                    numerical_input, confirmed, clear_screen, choice_menu, pause,
+                    print_alert, exec_funcs)
 
 from models import (initialize, ALL_TASKS, ALL_NAMES, ALL_DATES, CREATE_TASK, 
-                    TASKS_WITH_DURATION, NAMES_MATCHING, TASK_WITH_ID, 
+                    TASKS_WITH_DURATION, NAMES_MATCHING, TASK_WITH_ID, TASKS_WITH_NAME,
                     TASKS_WITH_DATE, TASKS_CONTAINING)
 
 messages = {
@@ -24,13 +26,11 @@ messages = {
 }
 
 templates = {
-    "name": "{name}\n",
-    "timestamp": "{id}) {timestamp}\n",
-    "task": """
-{id} {name} {timestamp}: 
+    "name": "{name}",
+    "timestamp": "{id}) {timestamp}",
+    "task": """{id} {name} {timestamp}: 
 {notes}
 Duration: {duration} hours
-___________________________________________________
 """
 }
 
@@ -53,11 +53,12 @@ def time_search():
 
 def name_search():
     def get_employees(*args, **kwargs):
-        kwargs['list'] = ALL_NAMES()
+        name = kwargs['input']['name'] if 'input' in kwargs and 'name' in kwargs['input'] else ""
+        kwargs['list'] = NAMES_MATCHING(name)
         return kwargs
     employee_print = partial(list_print, item_template=templates['name'], title=messages['title_name'])
     prompt_name = partial(line_input, prompt=messages["search_name"], name="name")
-    return [clear_screen, get_employees, employee_print, prompt_name]
+    return [clear_screen, print_alert, get_employees, employee_print, prompt_name]
 
 def date_search():
     def get_dates(*args, **kwargs):
@@ -81,7 +82,13 @@ search_choice = partial(choice_menu, title=messages["search_menu"],
                         prompt=messages["prompt_search_choice"], 
                         options=search_options, name="search")
 
-@option(func_list=[clear_screen, prompt_name, prompt_notes, prompt_duration, confirm_add, "this", end])
+def add_task_func_list():
+    return [clear_screen, prompt_name, prompt_notes, prompt_duration, confirm_add, "this", end]
+
+def search_tasks_func_list():
+    return [clear_screen, search_choice, "*", "this", clear_screen, task_print, pause, end]
+
+@option(chain_function=add_task_func_list)
 def add_task(*args, **kwargs):
     """add a task"""
     if kwargs['input']:
@@ -93,26 +100,36 @@ def grab_date_helper(obj):
     date_range = obj['list'][date_choice - 1]
     return date_range['timestamp']
 
-@option(func_list=[clear_screen, search_choice, "*", "this", clear_screen, task_print, end])
+@option(chain_function=search_tasks_func_list)
 def search_tasks(*args, **kwargs):
     """search for tasks"""
-    inputs = kwargs['input']
     choice = inputs['search']
     if choice == 'n':
-        matches = NAMES_MATCHING(inputs['name'])
-        if len(matches) < 1:
-            kwargs['alert'] = "::: NO MATCHES try again :::"
-            return search_tasks(**kwargs)
-        elif len(matches) == 1:
-            # This needs to be fixed
-            # kwargs['list'] = TASK_WITH_ID(matches[0]['id'])
-    if choice == 't':
-        kwargs['list'] = TASKS_WITH_DURATION(inputs['time'])
-    elif choice == 'd':
-        kwargs['list'] = TASKS_WITH_DATE(grab_date_helper(kwargs))
+        while True:
+            if 'list' in kwargs:
+                del kwargs['list']
+            matches = NAMES_MATCHING(inputs['name'])
+            if len(matches) < 1:
+                kwargs['alert'] = "NO MATCHES try again"
+                del kwargs['func_list']
+                del kwargs['input']['name']
+                kwargs = exec_funcs(func_list=name_search(), **kwargs)
+            elif len(matches) == 1:
+                kwargs['list'] = TASKS_WITH_NAME(kwargs['input']['name'])
+                break
+            else:
+                del kwargs['func_list']
+                kwargs = exec_funcs(func_list=name_search(), list=matches, **kwargs)
+                kwargs['list'] = TASKS_WITH_NAME(kwargs['input']['name'])
+                break
+    elif choice == 't':
+        kwargs['list'] = TASKS_WITH_DURATION(kwargs['input']['time'])
     elif choice == 'p':
-        kwargs['list'] = TASKS_CONTAINING(inputs['phrase'])
-    else:
+        kwargs['list'] = TASKS_CONTAINING(kwargs['input']['phrase'])
+    elif choice == 'd':
+        # we use the previous list here until I make an option picker
+        kwargs['list'] = TASKS_WITH_DATE(grab_date_helper(kwargs))
+    elif choice == 'a':
         kwargs['list'] = ALL_TASKS()
     return kwargs
 
@@ -125,7 +142,7 @@ if __name__ == '__main__':
     ]
     
     work_log = Menu(
-        title="Welcome to the WorkLog!\n\n",
+        title="Welcome to the WorkLog!",
         options=options,
         prompt_string = "What would you like to do?\n(Enter either {option_list}, or q to quit)",
         exit_text="Thanks for using the WorkLog!", 

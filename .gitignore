@@ -105,6 +105,3 @@ venv.bak/
 
 # vscode
 .vscode
-
-# database
-work_log.db
