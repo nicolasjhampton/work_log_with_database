@@ -55,8 +55,7 @@
         },
         "peewee": {
             "hashes": [
-                "sha256:1b0c40803d3eecd001819727472e39d78ac09254cd01e55d2e98ace141ec3815",
-                "sha256:32ce74dc47eabd97da7e72747f2d54b9f7713b76eac326cbce423f5514237291"
+                "sha256:1b0c40803d3eecd001819727472e39d78ac09254cd01e55d2e98ace141ec3815"
             ],
             "index": "pypi",
             "version": "==3.8.0"

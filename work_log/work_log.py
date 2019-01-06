@@ -3,11 +3,11 @@
 from functools import partial
 from copy import copy
 
-from menuize import (Menu, option, end, list_print, line_input, multiline_input, 
+from .menuize import (Menu, option, end, list_print, line_input, multiline_input, 
                     numerical_input, confirmed, clear_screen, choice_menu, pause,
                     print_alert, exec_funcs)
 
-from models import (initialize, ALL_TASKS, ALL_NAMES, ALL_DATES, CREATE_TASK, 
+from .models import (initialize, ALL_TASKS, ALL_NAMES, ALL_DATES, CREATE_TASK, 
                     TASKS_WITH_DURATION, NAMES_MATCHING, TASK_WITH_ID, TASKS_WITH_NAME,
                     TASKS_WITH_DATE, TASKS_CONTAINING)
 
@@ -103,12 +103,12 @@ def grab_date_helper(obj):
 @option(chain_function=search_tasks_func_list)
 def search_tasks(*args, **kwargs):
     """search for tasks"""
-    choice = inputs['search']
+    choice = kwargs['input']['search']
     if choice == 'n':
         while True:
             if 'list' in kwargs:
                 del kwargs['list']
-            matches = NAMES_MATCHING(inputs['name'])
+            matches = NAMES_MATCHING(kwargs['input']['name'])
             if len(matches) < 1:
                 kwargs['alert'] = "NO MATCHES try again"
                 del kwargs['func_list']
@@ -133,8 +133,7 @@ def search_tasks(*args, **kwargs):
         kwargs['list'] = ALL_TASKS()
     return kwargs
 
-
-if __name__ == '__main__':    
+def run():
     db = initialize()
     options = [
         ('a', add_task),
@@ -153,3 +152,7 @@ if __name__ == '__main__':
     except SystemExit as err:
         print(err)
         db.close()
+
+
+if __name__ == '__main__':    
+    run()

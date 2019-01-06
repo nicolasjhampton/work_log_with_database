@@ -3,7 +3,7 @@ from io import StringIO
 from unittest import TestCase, main, mock
 from collections import OrderedDict
 
-import menuize
+from work_log import menuize
 
 def add_task(*args, **kwargs):
     pass
@@ -274,16 +274,6 @@ class MeunizeTests(TestCase):
                 kwargs = menuize.numerical_input(**kwargs)
 
     @mock.patch('sys.stdout', new_callable=StringIO)
-    def test_numerical_input_raises_err(self, mock_stdout):
-        kwargs = {
-            "name": "input_key",
-            "prompt": "gimme number input dude",
-        }
-        with mock.patch('sys.stdin', StringIO("  words  ")):
-            with self.assertRaises(ValueError):
-                kwargs = menuize.numerical_input(**kwargs)
-
-    @mock.patch('sys.stdout', new_callable=StringIO)
     def test_confirmed_on_anything_but_n(self, mock_stdout):
         kwargs = {
             "confirm_msg": "ya sure dude?",
@@ -371,6 +361,5 @@ class MeunizeTests(TestCase):
             [add_task, search_tasks, this, that, other, edit_task]
         )
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

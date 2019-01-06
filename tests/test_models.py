@@ -1,81 +1,14 @@
-#!/usr/bin/env python3
-
 import unittest
 import datetime
 from functools import wraps
 
 from peewee import *
 
-db = None
-
-if __name__ == "__main__":
-    db = SqliteDatabase(':memory:')
-else:
-    db = SqliteDatabase('work_log.db')
-
-
-
-class Task(Model):
-    name = CharField(max_length=255)
-    notes = TextField()
-    duration = TimeField()
-    timestamp = DateField(default=datetime.datetime.now)
-    
-    class Meta:
-        database = db
-
-def initialize():
-    db.connect()
-    db.create_tables([Task], safe=True)
-    return db
-
-def CREATE_TASK(data):
-    Task.create(**data)
-
-def to_dictionary(func):
-    @wraps(func)
-    def inner(*args, **kwargs):
-        return func(*args, **kwargs).dicts()
-    return inner
-
-@to_dictionary
-def ALL_TASKS():
-    return Task.select()
-
-@to_dictionary
-def ALL_NAMES():
-    return Task.select(Task.name).group_by(Task.name)
-
-@to_dictionary
-def NAMES_MATCHING(name):
-    return Task.select(Task.name).where(Task.name.contains(name)).group_by(Task.name)
-
-@to_dictionary
-def ALL_DATES():
-    return Task.select(Task.timestamp).group_by(Task.timestamp)
-
-@to_dictionary
-def TASKS_WITH_DURATION(time):
-    return Task.select().where(Task.duration == time)
-
-@to_dictionary
-def TASK_WITH_ID(ID):
-    return Task.select().where(Task.id == ID)
-
-@to_dictionary
-def TASKS_WITH_NAME(name):
-    return Task.select().where(Task.name == name)
-
-@to_dictionary
-def TASKS_WITH_DATE(date):
-    return Task.select().where(Task.timestamp == date)
-
-@to_dictionary
-def TASKS_CONTAINING(phrase):
-    return Task.select().where(Task.name.contains(phrase) | Task.notes.contains(phrase))
-
+from work_log.models import *
 
 class CreateTests(unittest.TestCase):
+    db = SqliteDatabase(":memory:")
+
     TEST_TASK = {
         "name": "nic", 
         "notes": "These are some notes", 
@@ -83,11 +16,12 @@ class CreateTests(unittest.TestCase):
     }
 
     def setUp(self):
-        db.connect()
-        db.create_tables([Task])
+        initialize(self.db) #":memory:")
+        # self.db.connect()
+        # self.db.create_tables([Task])
     
     def tearDown(self):
-        db.close()
+        self.db.close()
 
     def test_CREATE_TASK(self):
         CREATE_TASK(self.TEST_TASK)
@@ -100,6 +34,8 @@ class CreateTests(unittest.TestCase):
 
 
 class QueryTests(unittest.TestCase):
+    db = SqliteDatabase(":memory:")
+    
     TEST_NAMES = ["nic", "nicolas", "tonia", "dave"]
     TEST_TASKS = [
         { "name": "nic", "notes": "incomplete notes these are", "duration": 2 },
@@ -110,13 +46,12 @@ class QueryTests(unittest.TestCase):
         { "name": "dave", "notes": "these are some musings", "duration": 2 },
     ]
     def setUp(self):
-        db.connect()
-        db.create_tables([Task])
+        initialize(self.db) #":memory:")
         for task in self.TEST_TASKS:
             CREATE_TASK(task)
     
     def tearDown(self):
-        db.close()
+        self.db.close()
     
     def test_ALL_TASKS(self):
         tasks = ALL_TASKS()
@@ -186,5 +121,5 @@ class QueryTests(unittest.TestCase):
             { 1, 4, 6 }
         )
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()
